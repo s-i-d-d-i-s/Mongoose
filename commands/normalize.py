@@ -1,11 +1,44 @@
+from commands import forex_handler, t212_handler
+import pandas as pd
+
+
+def validate_request(args):
+    if args.broker == "T212" and not args.file.lower().endswith(".csv"):
+        print("Error: Only .csv files are supported for T212 broker.")
+        return False
+    return True
+
+
+def normalize_t212(file_path):
+    try:
+        data = pd.read_csv(file_path)
+        forex= forex_handler.ForexHandler()
+        trading212_handler = t212_handler.Trading212Handler(data, "USD", forex)
+        normalized_data = trading212_handler.get_normalized_data()
+        print(normalized_data)
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        return
+
 def handle_normalize(args):
     """Handles the 'normalize' command."""
+    if not validate_request(args):
+        return
+
     print("Executing 'normalize' command...")
     print(f"  Broker: {args.broker}")
     print(f"  Input File: {args.file}")
-    print("This would normally clean and standardize the broker data.")
-    print(f"A file like 'normalized/{args.broker}.json' would be created.")
     print("-" * 20)
+    print("We would now clean and standardize the broker data.")
+
+    if args.broker == "T212":
+        normalize_t212(args.file)
+
+    print("-" * 20)
+    print(f"The cleaned data is stored in 'normalized/{args.broker}.json'")
+    print("-" * 20)
+
+
 
 def register_command(subparsers):
     """Registers the 'normalize' command and its arguments."""
