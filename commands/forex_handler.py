@@ -75,6 +75,7 @@ class ForexHandler:
         self.cache = Cache()
 
         self.eur_to_usd = self.fetch_forex_rates('EUR', 'USD')
+        self.usd_to_eur = self.fetch_forex_rates('USD', 'EUR')
 
     def fetch_forex_rates(self, source, target):
         cached_data = self.cache.get(f"{source}_{target}")
@@ -102,6 +103,8 @@ class ForexHandler:
     def get_rate_on_date(self, source, target, date_string):
         if source == "EUR" and target == "USD":
             data = self.eur_to_usd
+        elif source == "USD" and target == "EUR":
+            data = self.usd_to_eur
         else:
             raise ValueError(f"No exchange rate found for {source} to {target} on {date_string}")
 

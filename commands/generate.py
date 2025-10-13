@@ -1,3 +1,5 @@
+from commands.report_generator import ReportGenerator
+
 def handle_generate(args):
     """Handles the 'generate' command."""
     print("Executing 'generate' command...")
@@ -5,6 +7,11 @@ def handle_generate(args):
     print(f"  Currency: {args.currency}")
     print("This would normally calculate capital gains and create the final report.")
     print("-" * 20)
+    report_generator = ReportGenerator(args.report, args.currency)
+    report_generator.generate_report()
+    print("-" * 20)
+    print("Report Generation Completed.")
+    
 
 def register_command(subparsers):
     """Registers the 'generate' command and its arguments."""
@@ -15,7 +22,7 @@ def register_command(subparsers):
     parser_generate.add_argument(
         '--report',
         required=True,
-        help='The filename for the output report (e.g., tax_report.pdf).'
+        help='The filename for the output report (e.g., tax_report).'
     )
     parser_generate.add_argument(
         '--currency',

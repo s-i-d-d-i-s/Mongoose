@@ -1,2 +1,6 @@
 commands/__pycache__/
+commands/brokers/__pycache__/
 commands/cache/
+report/
+normalized/
+t212.csv

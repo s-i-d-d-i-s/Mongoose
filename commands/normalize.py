@@ -1,5 +1,7 @@
-from commands import forex_handler, t212_handler
+from commands import forex_handler
 import pandas as pd
+
+from commands.brokers import t212_handler
 
 
 def validate_request(args):
