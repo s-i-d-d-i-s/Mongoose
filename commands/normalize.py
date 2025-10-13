@@ -10,12 +10,17 @@ def validate_request(args):
 
 
 def normalize_t212(file_path):
+    import os, json
     try:
         data = pd.read_csv(file_path)
         forex= forex_handler.ForexHandler()
         trading212_handler = t212_handler.Trading212Handler(data, "USD", forex)
         normalized_data = trading212_handler.get_normalized_data()
-        print(normalized_data)
+        # Ensure the directory exists
+        os.makedirs('normalized', exist_ok=True)
+        with open(f'normalized/T212.json', 'w') as f:
+            f.write(json.dumps(normalized_data))
+
     except Exception as e:
         print(f"Error reading file: {e}")
         return

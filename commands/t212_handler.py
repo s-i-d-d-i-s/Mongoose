@@ -10,7 +10,7 @@ class Trading212Handler:
         self.forex_handler = forex_handler
         self.normalized_data = {
             'interest': [],
-            'capital_gains' : [],
+            'orders' : [],
             'dividends' : [],
         }
         
@@ -33,7 +33,7 @@ class Trading212Handler:
             dt_object = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
         except ValueError:
             dt_object = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-        return dt_object.strftime("%Y-%m-%d")
+        return dt_object.strftime("%Y-%m-%d %I:%M %p")
 
     
    
@@ -44,19 +44,14 @@ class Trading212Handler:
             total = row['Total']
             currency = row['Currency (Total)']
             timestamp = row['Time']
-            # Handle timestamps with or without fractional seconds
             formatted_date = self.__get_formatted_date(timestamp)
             amount = self.__get_forex_adjusted_amount(currency, self.currency, formatted_date, total)
             self.normalized_data['interest'].append([formatted_date, amount])
     
-    # # Computes the capital gains for stocks in the portfolio.
     # def compute_stock_capital_gains(self, target_currency):
     #     # Filter relevant actions
     #     data = self.data[self.data['Action'].isin(['Market buy', 'Market sell', 'Limit buy', 'Limit sell'])]
     #     # Initialize tracking dictionaries
-    #     portfolio = portfolio_handler.PortfolioHandler(currency=self.currency)
-    #     capital_gains = 0
-    #     self.calculation_log += f"Calculating capital_gains for stocks denominated in {target_currency}...\n"
 
     #     for index, row in data.iterrows():
     #         action = row['Action']
@@ -70,7 +65,7 @@ class Trading212Handler:
     #         formatted_date = self.__get_formatted_date(timestamp)
 
     #         if action in ['Market buy', 'Limit buy']:
-    #             self.__log_transaction(action, shares, ticker, price_per_share, currency, formatted_date)
+    #             self.normalized_data['orders'].append([formatted_date, 'BUY', shares, ticker, price_per_share])
     #             portfolio.buy(ticker, shares, price_per_share)
     #         elif action in ['Market sell', 'Limit sell']:
     #             # Sell and calculate capital gains in the transaction currency
@@ -81,32 +76,19 @@ class Trading212Handler:
     #             self.__log_transaction(action, shares, ticker, price_per_share, currency, formatted_date, gains, target_currency, amount)
     #             # Add to pnl dictionary in target currency
     #             self.__add_to_pnl_dictionary(formatted_date, amount)
-
-    #     self.calculation_log += "\n"
-    #     return capital_gains
     
-    # # Computes the total dividends received in the portfolio.
-    # def compute_total_dividends(self, target_currency):
-    #     # Filter relevant actions
-    #     data = self.data[self.data['Action'] == 'Dividend (Dividend)']
-    #     total_dividends = 0
-    #     self.calculation_log += f"Calculating total dividends denominated in {target_currency}...\n"
-
-    #     for index, row in data.iterrows():
-    #         currency = row['Currency (Total)']
-    #         if currency != target_currency:
-    #             continue  # Skip if the currency is not the target currency
-    #         total = row['Total']
-    #         timestamp = row['Time']
-    #         formatted_date = self.__get_formatted_date(timestamp)
-    #         amount = self.__get_forex_adjusted_amount(currency, target_currency, formatted_date, total)
-    #         self.__add_to_pnl_dictionary(formatted_date, total)
-    #         total_dividends += total
-    #         # Use the __log helper for dividends
-    #         self.__log(currency, formatted_date, total, amount, "dividend")
-
-    #     self.calculation_log += "\n"
-    #     return total_dividends
+    # Computes the total dividends received in the portfolio.
+    def compute_total_dividends(self, target_currency):
+        data = self.data[self.data['Action'] == 'Dividend (Dividend)']
+        for index, row in data.iterrows():
+            currency = row['Currency (Total)']
+            if currency != target_currency:
+                continue  # Skip if the currency is not the target currency
+            total = row['Total']
+            timestamp = row['Time']
+            formatted_date = self.__get_formatted_date(timestamp)
+            amount = self.__get_forex_adjusted_amount(currency, target_currency, formatted_date, total)
+            self.normalized_data['dividends'].append([formatted_date, amount])
 
 
     def get_normalized_data(self):
@@ -116,9 +98,11 @@ class Trading212Handler:
         if self.data is None:
             return None
         self.compute_interest()
-        # capital_gains_eur = self.compute_stock_capital_gains("EUR")
-        # capital_gains_usd = self.compute_stock_capital_gains("USD")
-        # dividends_eur = self.compute_total_dividends("EUR")
-        # dividends_usd = self.compute_total_dividends("USD")
+        self.compute_total_dividends("EUR")
+        self.compute_total_dividends("USD")
+
+        # self.compute_stock_capital_gains("EUR")
+        # self.compute_stock_capital_gains("USD")
+        
         return self.normalized_data
 

@@ -98,7 +98,7 @@ class ForexHandler:
         return data['data']
     
     # Returns the exchange rate data for the specified source and target currencies.
-    # The date format is YYYY-MM-DD.
+    # The date format is YYYY-MM-DD I:M p.
     def get_rate_on_date(self, source, target, date_string):
         if source == "EUR" and target == "USD":
             data = self.eur_to_usd
@@ -107,7 +107,7 @@ class ForexHandler:
 
         from datetime import datetime
         # Convert to a datetime object
-        date_object = datetime.strptime(date_string, "%Y-%m-%d")
+        date_object = datetime.strptime(date_string, "%Y-%m-%d %I:%M %p")
         timestamp = int(date_object.timestamp())*1000
         for rate in data:
             if rate['time'] >= timestamp:
